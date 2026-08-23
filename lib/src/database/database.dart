@@ -20,6 +20,7 @@ import 'package:jhentai/src/database/table/gallery_group.dart';
 import 'package:jhentai/src/database/table/gallery_history.dart';
 import 'package:jhentai/src/database/table/image.dart';
 import 'package:jhentai/src/database/table/local_config.dart';
+import 'package:jhentai/src/database/table/smart_cache_stat.dart';
 import 'package:jhentai/src/database/table/super_resolution_info.dart';
 import 'package:jhentai/src/database/table/tag.dart';
 import 'package:jhentai/src/database/table/tag_count.dart';
@@ -60,13 +61,14 @@ part 'database.g.dart';
     DioCache,
     BlockRule,
     LocalConfig,
+    SmartCacheStat,
   ],
 )
 class AppDb extends _$AppDb {
   AppDb() : super(_openConnection());
 
   @override
-  int get schemaVersion => 25;
+  int get schemaVersion => 26;
 
   @override
   MigrationStrategy get migration {
@@ -165,6 +167,20 @@ class AppDb extends _$AppDb {
               await m.alterTable(TableMigration(archiveDownloaded, newColumns: [archiveDownloaded.sanitizedTitle]));
               await m.alterTable(TableMigration(galleryDownloaded, newColumns: [galleryDownloaded.sanitizedTitle]));
               await _backfillSanitizedTitles();
+            }
+            if (from < 26) {
+              /// Smart cache usage stats for pages and images, used by the
+              /// space limit and eviction policy of the long-term cache.
+              try {
+                await m.createTable(smartCacheStat);
+              } on SqliteException catch (e) {
+                log.warning('Create smart cache stat table failed: ${e.message}');
+                if (e.extendedResultCode == SqlError.SQLITE_ERROR && e.message.contains('already exists')) {
+                  log.warning('Ignore duplicate table error: ${e.message}');
+                } else {
+                  rethrow;
+                }
+              }
             }
             if (from < 25) {
               /// Add `originalImageUrl` column to the `image` table. The DB

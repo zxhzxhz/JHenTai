@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
-import 'package:extended_image/extended_image.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
@@ -22,7 +21,6 @@ import 'package:jhentai/src/utils/eh_spider_parser.dart';
 import 'package:jhentai/src/utils/snack_util.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:retry/retry.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -37,6 +35,7 @@ import '../widget/update_dialog.dart';
 import 'jh_service.dart';
 import 'local_config_service.dart';
 import 'log.dart';
+import 'path_service.dart';
 
 ScheduleService scheduleService = ScheduleService();
 
@@ -162,7 +161,15 @@ class ScheduleService with JHLifeCircleBeanErrorCatch implements JHLifeCircleBea
   }
 
   Future<void> clearOutdatedImageCache() async {
-    Directory cacheImageDirectory = Directory(join((await getTemporaryDirectory()).path, cacheImageFolderName));
+    /// The long-term image cache lives in a dedicated folder inside temp
+    /// (see [PathService.smartCacheFolderName]). When retention is set to
+    /// unlimited, time-based cleanup is skipped entirely.
+    final Directory cacheImageDirectory = Directory(join(pathService.tempDir.path, PathService.smartCacheFolderName));
+
+    if (networkSetting.isSmartCacheRetentionUnlimited) {
+      log.info('Skip outdated image cache cleanup: retention is unlimited.');
+      return;
+    }
 
     if (!cacheImageDirectory.existsSync()) {
       return;
@@ -170,7 +177,7 @@ class ScheduleService with JHLifeCircleBeanErrorCatch implements JHLifeCircleBea
 
     int count = 0;
     cacheImageDirectory.list().forEach((FileSystemEntity entity) {
-      if (entity is File && DateTime.now().difference(entity.lastAccessedSync()) > networkSetting.cacheImageExpireDuration.value) {
+      if (entity is File && DateTime.now().difference(entity.lastAccessedSync()) > networkSetting.effectiveCacheImageExpireDuration) {
         entity.delete();
         count++;
       }

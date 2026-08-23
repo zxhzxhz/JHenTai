@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:extended_image/extended_image.dart' show extendedImageDiskCacheDirectory;
 import 'package:get/get.dart';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'jh_service.dart';
@@ -8,6 +10,9 @@ import 'jh_service.dart';
 PathService pathService = PathService();
 
 class PathService with JHLifeCircleBeanErrorCatch implements JHLifeCircleBean {
+  /// Smart cache (pages + images) lives in this dedicated folder inside temp.
+  static const String smartCacheFolderName = 'autotemp';
+
   /// visible for all
   late Directory tempDir;
 
@@ -34,6 +39,12 @@ class PathService with JHLifeCircleBeanErrorCatch implements JHLifeCircleBean {
       getExternalStorageDirectory().then((value) => externalStorageDir = value).catchError((error) => null),
       getDownloadsDirectory().then((value) => systemDownloadDir = value).catchError((error) => null),
     ]);
+
+    /// Route the long-term image cache into a dedicated folder inside temp so
+    /// it can be measured and evicted independently of other temp files.
+    final Directory smartCacheDir = Directory(join(tempDir.path, smartCacheFolderName));
+    await smartCacheDir.create(recursive: true);
+    extendedImageDiskCacheDirectory = smartCacheDir.path;
   }
 
   @override

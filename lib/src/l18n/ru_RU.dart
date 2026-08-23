@@ -439,6 +439,21 @@ class ru_RU {
       'pageCacheMaxAgeHint': 'Вы можете обновить кэш, обновив страницу',
       'cacheImageExpireDuration': 'Время жизни кэша изображений',
       'cacheImageExpireDurationHint': 'Автоматически удалять кэш изображений после запуска приложения',
+      'enableSmartCache': "Умный кэш",
+      'enableSmartCacheHint':
+          "При включении просмотренные страницы и изображения хранятся в кэше в течение выбранного срока; при выключении остаётся только кратковременный кэш",
+      'smartCacheRetention': "Срок хранения кэша",
+      'smartCacheRetentionHint':
+          "Кэш старше этого срока очищается автоматически",
+      'smartCacheMaxSize': "Максимальный размер кэша",
+      'smartCacheMaxSizeHint': "При превышении лимита кэш очищается автоматически",
+      'smartCacheEvictPolicy': "Политика очистки",
+      'smartCacheEvictPolicyHint':
+          "Какие записи удаляются первыми при достижении лимита",
+      'smartCacheEvictByAddedDate': "По дате добавления",
+      'smartCacheEvictByUsageFrequency': "По частоте использования",
+      'unlimited': "Без ограничений",
+      'cacheSize': "Текущий размер кэша",
       'oneMinute': '1 минута',
       'tenMinute': '10 минут',
       'oneHour': '1 час',

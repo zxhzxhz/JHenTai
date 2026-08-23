@@ -105,7 +105,7 @@ class EHRequest with JHLifeCircleBeanErrorCatch implements JHLifeCircleBean {
     _cacheManager = EHCacheManager(
       options: CacheOptions(
         policy: CachePolicy.disable,
-        expire: networkSetting.pageCacheMaxAge.value,
+        expire: networkSetting.effectivePageCacheMaxAge,
         store: SqliteCacheStore(appDb: appDb),
       ),
     );

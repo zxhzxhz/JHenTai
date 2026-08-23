@@ -436,6 +436,21 @@ class pt_BR {
       'pageCacheMaxAgeHint': 'Você pode atualizar o cache atualizando a página',
       'cacheImageExpireDuration': 'Image Cache Expiration Time',
       'cacheImageExpireDurationHint': 'Remove image cache automatically after launching app',
+      'enableSmartCache': "Cache Inteligente",
+      'enableSmartCacheHint':
+          "Quando ativado, mantém as páginas e imagens vistas pelo período definido; desativado mantém apenas um cache de curta duração",
+      'smartCacheRetention': "Retenção do cache",
+      'smartCacheRetentionHint':
+          "Caches mais antigos que isso são limpos automaticamente",
+      'smartCacheMaxSize': "Limite de espaço do cache",
+      'smartCacheMaxSizeHint': "O cache é limpo automaticamente ao exceder o limite",
+      'smartCacheEvictPolicy': "Política de limpeza",
+      'smartCacheEvictPolicyHint':
+          "Quais entradas são removidas primeiro ao atingir o limite",
+      'smartCacheEvictByAddedDate': "Por data de adição",
+      'smartCacheEvictByUsageFrequency': "Por frequência de uso",
+      'unlimited': "Ilimitado",
+      'cacheSize': "Tamanho atual do cache",
       'oneMinute': '1 Minuto',
       'tenMinute': '10 Minutos',
       'oneHour': '1 Hora',

@@ -310,7 +310,7 @@ class _SettingAdvancedPageState extends State<SettingAdvancedPage> {
 
           return byte2String(totalBytes.toDouble());
         },
-        join(pathService.tempDir.path, cacheImageFolderName),
+        join(pathService.tempDir.path, PathService.smartCacheFolderName),
       );
     } catch (e) {
       log.error(e);

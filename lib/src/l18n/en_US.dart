@@ -435,6 +435,21 @@ class en_US {
       'pageCacheMaxAgeHint': 'You can update cache by refresh page',
       'cacheImageExpireDuration': 'Image Cache Expiration Time',
       'cacheImageExpireDurationHint': 'Remove image cache automatically after launching app',
+      'enableSmartCache': "Smart Cache",
+      'enableSmartCacheHint':
+          "Keep viewed pages and images for the retention period; turn off to keep only a short-lived cache",
+      'smartCacheRetention': "Cache Retention",
+      'smartCacheRetentionHint':
+          "Cache older than this is cleared automatically",
+      'smartCacheMaxSize': "Max Cache Size",
+      'smartCacheMaxSizeHint': "Cache is cleared automatically when the limit is exceeded",
+      'smartCacheEvictPolicy': "Eviction Policy",
+      'smartCacheEvictPolicyHint':
+          "Which cache entries are removed first when the limit is reached",
+      'smartCacheEvictByAddedDate': "By added date",
+      'smartCacheEvictByUsageFrequency': "By usage frequency",
+      'unlimited': "Unlimited",
+      'cacheSize': "Current Cache Size",
       'oneMinute': '1 Minute',
       'tenMinute': '10 Minute',
       'oneHour': '1 Hour',
