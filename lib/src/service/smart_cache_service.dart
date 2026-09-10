@@ -84,9 +84,7 @@ class SmartCacheService
   }
 
   Future<void> _onImageWritten(String key) async {
-    final File file = File(
-      join(pathService.tempDir.path, PathService.smartCacheFolderName, key),
-    );
+    final File file = File(join(pathService.smartCacheDir.path, key));
     final int size = file.existsSync() ? file.lengthSync() : 0;
     _imageWrittenCounts.update(
       key,
@@ -200,9 +198,7 @@ class SmartCacheService
     };
 
     final List<_CacheEntry> entries = [];
-    final Directory imageDir = Directory(
-      join(pathService.tempDir.path, PathService.smartCacheFolderName),
-    );
+    final Directory imageDir = pathService.smartCacheDir;
     if (imageDir.existsSync()) {
       await for (final FileSystemEntity entity in imageDir.list()) {
         if (entity is! File) {
@@ -255,13 +251,7 @@ class SmartCacheService
 
   Future<void> _deleteEntry(_CacheEntry entry) async {
     if (entry.kind == 'image') {
-      final File file = File(
-        join(
-          pathService.tempDir.path,
-          PathService.smartCacheFolderName,
-          entry.key,
-        ),
-      );
+      final File file = File(join(pathService.smartCacheDir.path, entry.key));
       if (file.existsSync()) {
         file.deleteSync();
       }

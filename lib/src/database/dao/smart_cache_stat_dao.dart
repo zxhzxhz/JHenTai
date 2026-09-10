@@ -12,10 +12,18 @@ class SmartCacheStatDao {
         .go();
   }
 
-  static Future<int> deleteByKeys(List<String> cacheKeys) {
-    return (appDb.delete(appDb.smartCacheStat)
-          ..where((tbl) => tbl.cacheKey.isIn(cacheKeys)))
-        .go();
+  /// Deletes the given keys in batches: a single statement would exceed
+  /// SQLite's bound-variable limit once a few thousand files expire at once.
+  static Future<int> deleteByKeys(List<String> cacheKeys) async {
+    const int batchSize = 500;
+    int deleted = 0;
+    for (int start = 0; start < cacheKeys.length; start += batchSize) {
+      final int end = start + batchSize < cacheKeys.length ? start + batchSize : cacheKeys.length;
+      deleted += await (appDb.delete(appDb.smartCacheStat)
+            ..where((tbl) => tbl.cacheKey.isIn(cacheKeys.sublist(start, end))))
+          .go();
+    }
+    return deleted;
   }
 
   static Future<int> deleteLikeUrl(String url) {

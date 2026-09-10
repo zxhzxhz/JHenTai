@@ -10,6 +10,7 @@ import 'package:get/get_rx/get_rx.dart';
 import 'package:get/get_utils/get_utils.dart';
 import 'package:jhentai/src/database/dao/archive_dao.dart';
 import 'package:jhentai/src/database/dao/gallery_dao.dart';
+import 'package:jhentai/src/database/dao/smart_cache_stat_dao.dart';
 import 'package:jhentai/src/extension/dio_exception_extension.dart';
 import 'package:jhentai/src/network/eh_request.dart';
 import 'package:jhentai/src/setting/archive_bot_setting.dart';
@@ -161,27 +162,58 @@ class ScheduleService with JHLifeCircleBeanErrorCatch implements JHLifeCircleBea
   }
 
   Future<void> clearOutdatedImageCache() async {
-    /// The long-term image cache lives in a dedicated folder inside temp
-    /// (see [PathService.smartCacheFolderName]). When retention is set to
-    /// unlimited, time-based cleanup is skipped entirely.
-    final Directory cacheImageDirectory = Directory(join(pathService.tempDir.path, PathService.smartCacheFolderName));
-
+    /// The long-term image cache lives in the persistent data directory
+    /// (see [PathService.smartCacheDir]). When retention is set to unlimited,
+    /// time-based cleanup is skipped entirely.
     if (networkSetting.isSmartCacheRetentionUnlimited) {
       log.info('Skip outdated image cache cleanup: retention is unlimited.');
       return;
     }
 
+    final Directory cacheImageDirectory = pathService.smartCacheDir;
     if (!cacheImageDirectory.existsSync()) {
       return;
     }
 
+    /// File access times cannot be trusted: iOS (APFS) does not update them,
+    /// so an image read yesterday still reports its creation time and would be
+    /// deleted because of its age. The usage recorded by [SmartCacheStatDao]
+    /// is the real last access; the modification time is only a fallback for
+    /// files cached before those statistics existed.
+    final Map<String, DateTime> lastAccessMap = {
+      for (final SmartCacheStatData stat in await SmartCacheStatDao.selectAll()) stat.cacheKey: stat.lastAccessAt,
+    };
+
+    final DateTime now = DateTime.now();
+    final Duration expireDuration = networkSetting.effectiveCacheImageExpireDuration;
+    final List<String> expiredKeys = [];
     int count = 0;
-    cacheImageDirectory.list().forEach((FileSystemEntity entity) {
-      if (entity is File && DateTime.now().difference(entity.lastAccessedSync()) > networkSetting.effectiveCacheImageExpireDuration) {
-        entity.delete();
-        count++;
+
+    await for (final FileSystemEntity entity in cacheImageDirectory.list()) {
+      if (entity is! File) {
+        continue;
       }
-    }).then((_) => log.info('Clear outdated image cache success, count: $count'));
+
+      final String key = basename(entity.path);
+      final DateTime lastAccess = lastAccessMap[key] ?? entity.statSync().modified;
+      if (now.difference(lastAccess) <= expireDuration) {
+        continue;
+      }
+
+      try {
+        await entity.delete();
+        expiredKeys.add(key);
+        count++;
+      } catch (e) {
+        log.warning('Delete outdated image cache failed: ${entity.path}', e);
+      }
+    }
+
+    if (expiredKeys.isNotEmpty) {
+      await SmartCacheStatDao.deleteByKeys(expiredKeys);
+    }
+
+    log.info('Clear outdated image cache success, count: $count');
   }
 
   Future<void> _clearOutdatedGalleryImageHashCache() async {
